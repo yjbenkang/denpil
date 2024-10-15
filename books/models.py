@@ -13,6 +13,10 @@ class Book(models.Model):
     description = models.TextField()
     pricesales = models.IntegerField() # 회의로 넣을지 결정
     pricestandard = models.IntegerField() #회의로 넣을지 결정
+    rating_score = models.FloatField()
+    rating_count = models.IntegerField()
+    best_duration = models.CharField(max_length=200, default="default value")
+    best_rank = models.IntegerField()
     publisher = models.CharField(max_length=200)
     sales_point = models.IntegerField()
     cover_url = models.URLField()

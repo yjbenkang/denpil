@@ -9,7 +9,7 @@ class AuthorAdmin(admin.ModelAdmin):
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'pubdate', 'publisher', 'sales_point')
+    list_display = ('title', 'author', 'pubdate', 'publisher', 'sales_point', 'rating_score', 'rating_count', 'best_duration', 'best_rank')
     search_fields = ('title', 'author')
     list_filter = ('pubdate', 'publisher')
     ordering = ('-pubdate',)
