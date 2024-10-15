@@ -37,7 +37,14 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_apscheduler",
 ]
+
+# default
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a" 
+
+# 자동으로 스케쥴러 실행
+SCHEDULER_DEFAULT = True
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
