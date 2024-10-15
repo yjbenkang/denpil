@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "drf_yasg",
     "books.apps.BooksConfig",
     "rest_framework",
     "django.contrib.admin",
