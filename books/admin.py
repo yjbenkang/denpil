@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import Book, Author
+from django_apscheduler.models import DjangoJob, DjangoJobExecution
 
 
 @admin.register(Author)
@@ -13,4 +14,3 @@ class BookAdmin(admin.ModelAdmin):
     search_fields = ('title', 'author')
     list_filter = ('pubdate', 'publisher')
     ordering = ('-pubdate',)
-

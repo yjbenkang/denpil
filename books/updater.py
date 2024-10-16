@@ -2,10 +2,10 @@ import requests
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
 from pathlib import Path
-from .models import Book
+from .models import Book, Author
 
 scheduler = BackgroundScheduler()
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def get_secret(key):
@@ -28,7 +28,7 @@ def update_data(author):
     print(len(items))
     for item in items:
         title = item.get('title', '')
-        author_name = item.get('author', '')
+        # author_name = item.get('author', '')
         pub_date = item.get('pubDate', '')
         description = item.get('description', '')
         salesPoint = item.get('salesPoint', 0)
@@ -39,22 +39,24 @@ def update_data(author):
         price_sales = item.get('priceSales', 0)
         price_standard = item.get('priceStandard', 0)
         bestDuration = item.get('bestDuration', '')
-        bestRank = item.get('bestRank', '')
+        bestRank = item.get('bestRank', 0)
         link = item.get('link', '')
+        
+        author_obj = Author.objects.get(name=author)
         book = Book(
             title=title,
-            author=author_name,
+            author=author_obj,
             pubdate=pub_date,  # pub_date 변환이 필요할 수 있음
             description=description,
             sales_point=salesPoint,
-            ratingScore=ratingScore,
-            ratingCount=ratingCount,
+            rating_score=ratingScore,
+            rating_count=ratingCount,
             cover_url=cover,
             publisher=publisher,
             pricesales=price_sales,
             pricestandard=price_standard,
-            bestDuration=bestDuration,
-            bestRank=bestRank,
+            best_duration=bestDuration,
+            best_rank=bestRank,
             link=link
         )
 
@@ -64,16 +66,20 @@ def update_data(author):
         # print(title, author_name, publisher, pub_date, description, price_sales, price_standard, cover)
 
 
-def update_all_authors(author_list):
+def update_all_authors():
+    author_list = list(Author.objects.values_list('name', flat=True))
     try:
         for author in author_list:
             update_data(author)
+            print(f'{author} 데이터 저장 완료')
     except Exception as e:
         print(f"Error updating authors: {e}")
 
 
-def setup_scheduler(author_list):
-    scheduler.add_job(lambda: update_all_authors(author_list), 'interval', days=1)
+def setup_scheduler():
+    scheduler.add_job(update_all_authors, 'interval', days=1)
+    scheduler.start()
+    print('setup_scheduler 완료')
 
 
 # 테스트 실행용
