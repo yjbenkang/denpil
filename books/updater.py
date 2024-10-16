@@ -77,7 +77,10 @@ def update_data(author):
         # print(f"제목: {title}, 저자: {author_obj.name}, 출판사: {publisher}, 출판일: {pub_date}, 설명: {description}, 판매가: {price_sales}, 정가: {price_standard}, 판매 포인트: {salesPoint}, 평점: {ratingScore}, 평점 수: {ratingCount}, 표지 URL: {cover}, 베스트셀러 기간: {bestDuration}, 베스트셀러 순위: {bestRank}, 링크: {link}")
 
 
-def update_all_authors():
+def update_all_authors():    #if DB가 채워져 있을 때 삭제후 진행
+    if Book.objects.exists():
+        Book.objects.all().delete()
+        print("모든 기존 데이터 삭제 완료")
     author_list = list(Author.objects.values_list('name', flat=True))
     try:
         for author in author_list:
