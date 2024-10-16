@@ -19,8 +19,8 @@ def get_secret(key):
 
 def update_data(author):
     key = get_secret('TTB_KEY')
-    url = f"http://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey={key}&Query={author}&QueryType=Author&MaxResults=100&start=1&SearchTarget=Book&output=js&Version=20131101"
-    response = requests.get(url)
+    search_url = f"http://www.aladin.co.kr/ttb/api/ItemSearch.aspx?ttbkey={key}&Query={author}&QueryType=Author&MaxResults=100&start=1&SearchTarget=Book&output=js&Version=20131101"
+    response = requests.get(search_url)
     data = json.loads(response.text)
 
     # 데이터 전처리
@@ -28,12 +28,9 @@ def update_data(author):
     print(len(items))
     for item in items:
         title = item.get('title', '')
-        # author_name = item.get('author', '')
         pub_date = item.get('pubDate', '')
         description = item.get('description', '')
         salesPoint = item.get('salesPoint', 0)
-        ratingScore = item.get('ratingScore', 0)
-        ratingCount = item.get('ratingCount', 0)
         cover = item.get('cover', '')
         publisher = item.get('publisher', '')
         price_sales = item.get('priceSales', 0)
@@ -41,6 +38,20 @@ def update_data(author):
         bestDuration = item.get('bestDuration', '')
         bestRank = item.get('bestRank', 0)
         link = item.get('link', '')
+        isbn13 = item.get('isbn13', '')
+        
+        if isbn13:  # isbn13이 존재할 때만 추가 정보를 가져옴
+            lookup_url = f'http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?ttbkey={key}&itemIdType=ISBN13&ItemId={isbn13}&output=js&Version=20131101&OptResult=ebookList,usedList,reviewList&OptResult=ratinginfo'
+            response = requests.get(lookup_url)
+            data = json.loads(response.text)
+            items = data.get('item', {})
+            subInfo = items[0].get('subInfo', {})
+            ratingInfo = subInfo.get('ratingInfo', {})
+            ratingScore = ratingInfo.get('ratingScore', 0)
+            ratingCount = ratingInfo.get('ratingCount', 0)
+        else:
+            ratingScore = 0
+            ratingCount = 0
         
         author_obj = Author.objects.get(name=author)
         book = Book(
@@ -63,7 +74,7 @@ def update_data(author):
         # 데이터베이스에 저장
         book.save()
         # 테스트 출력용
-        # print(title, author_name, publisher, pub_date, description, price_sales, price_standard, cover)
+        # print(f"제목: {title}, 저자: {author_obj.name}, 출판사: {publisher}, 출판일: {pub_date}, 설명: {description}, 판매가: {price_sales}, 정가: {price_standard}, 판매 포인트: {salesPoint}, 평점: {ratingScore}, 평점 수: {ratingCount}, 표지 URL: {cover}, 베스트셀러 기간: {bestDuration}, 베스트셀러 순위: {bestRank}, 링크: {link}")
 
 
 def update_all_authors():
@@ -80,17 +91,3 @@ def setup_scheduler():
     scheduler.add_job(update_all_authors, 'interval', days=1)
     scheduler.start()
     print('setup_scheduler 완료')
-
-
-# 테스트 실행용
-if __name__ == "__main__":
-    author_list = ['가오싱젠', 'V. S. 나이폴', '임레 케르테스', 'J. M. 쿳시', '엘프리데 옐리네크', '해롤드 핀터',
-                   '오르한 파묵', '도리스 레싱', 'J.M.G. 르 클레지오', '헤르타 뮐러', '마리오 바르가스 요사', '토마스 트란스트뢰메르', '모옌', '앨리스 먼로',
-                   '파트릭 모디아노',
-                   '스베틀라나 알렉시예비치', '밥 딜런', '가즈오 이시구로', '올가 토카르추크', '페터 한트케', '루이즈 글릭', '압둘라자크 구르나', '아니 에르노', '욘 포세',
-                   '한강']
-
-    update_all_authors(author_list)  # 최초 데이터 수집
-    setup_scheduler(author_list)  # 1일 단위로 스케줄에 추가
-    print(BASE_DIR)
-    scheduler.start()
