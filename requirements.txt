@@ -18,3 +18,8 @@ sqlparse==0.5.1
 tzlocal==5.2
 uritemplate==4.1.1
 urllib3==2.2.3
+beautifulsoup4==4.12.3
+selenium==4.25.0
+aiohttp==3.10.10
+asyncio==3.4.3
+playwright==1.47.0
