@@ -24,6 +24,7 @@ class Book(models.Model):
     sales_point = models.IntegerField()
     cover_url = models.URLField()
     link = models.URLField()
+    age_gender_ratings = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return self.title

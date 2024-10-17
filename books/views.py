@@ -27,6 +27,7 @@ def author_books(request, author_id):
         'best_rank': book.best_rank,
         'publisher': book.publisher,
         'sales_point': book.sales_point,
+        'age_gender_ratings': book.age_gender_ratings,
         } for book in books]
     return JsonResponse({'author': author_dict, 'books': book_list})
 
@@ -47,6 +48,7 @@ def book_details(request, book_id):
         'sales_point': book.sales_point,
         'cover_url': book.cover_url,
         'link': book.link,
+        'age_gender_ratings': book.age_gender_ratings,
 
     }
     return JsonResponse(data)

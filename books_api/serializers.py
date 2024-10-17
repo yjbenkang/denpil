@@ -9,7 +9,7 @@ class BookSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
     class Meta:
         model = Book
-        fields = ['title', 'author', 'pubdate', 'description', 'pricesales', 'pricestandard', 'rating_score', 'rating_count', 'best_duration', 'best_rank', 'publisher', 'sales_point', 'cover_url', 'link']
+        fields = ['title', 'author', 'pubdate', 'description', 'pricesales', 'pricestandard', 'rating_score', 'rating_count', 'best_duration', 'best_rank', 'publisher', 'sales_point', 'cover_url', 'link', 'age_gender_ratings']
 
     def create(self, validated_data):
         # Book 인스턴스 생성
@@ -33,5 +33,6 @@ class BookSerializer(serializers.ModelSerializer):
         instance.sales_point = validated_data.get('sales_point', instance.sales_point)
         instance.cover_url = validated_data.get('cover_url', instance.cover_url)
         instance.link = validated_data.get('link', instance.link)
+        instance.age_gender_ratings = validated_data.get('age_gender_ratings', instance.age_gender_ratings)
         instance.save()
         return instance
