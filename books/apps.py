@@ -22,10 +22,10 @@ class BooksConfig(AppConfig):
     def initialize_data():
         # 데이터베이스 연결이 준비될 때까지 잠시 대기
         time.sleep(5)
-        
+
         from django.db import connections
         from django.db.utils import OperationalError
-        
+
         # 데이터베이스 연결 확인
         db_conn = connections['default']
         try:

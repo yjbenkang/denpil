@@ -16,6 +16,7 @@
         }
 
         body {
+            //background-color: #dbd6d0;
             font-family: 'Noto Sans KR', serif;
             color: #333;
             line-height: 1.6;
@@ -45,6 +46,15 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
+        .contents {
+            width: 900px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
         /* 작가 목록 섹션 */
         .author-list {
             width: 30%;
@@ -56,6 +66,8 @@
 
         /* 작가 아이템 스타일 */
         .author-item {
+            display: flex;
+            justify-content: space-between; /* 왼쪽과 오른쪽 끝으로 배치 */
             padding: 12px 15px;
             margin-bottom: 15px;
             background-color: #fdfdfb;
@@ -70,6 +82,58 @@
             transform: translateY(-3px);
         }
 
+        .author-name {
+            flex-grow: 1; /* 이름을 왼쪽에 */
+            text-align: left;
+        }
+
+        .author-year {
+            text-align: right;
+            color: #888; /* 연도의 색상을 약간 어둡게 */
+        }
+
+        #author-name {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 30px; /* 책 목록과의 간격 */
+        }
+
+        .author-content {
+            display: flex;
+            align-items: center;  /* 사진과 설명을 세로로 가운데 정렬 */
+            justify-content: space-between; /* 공간 균등 분배 */
+            gap: 30px; /* 사진과 설명 사이 간격 */
+        }
+
+        /* 작가 초상화 스타일 */
+        .author-portrait img {
+            width: 150px; /* 초상화 크기 */
+            height: 150px;
+            object-fit: cover; /* 이미지 비율 유지 */
+            border-radius: 5%; /* 원형으로 표시 */
+        }
+
+        /* 작가 설명 스타일 */
+        .author-details {
+            flex-grow: 1; /* 설명 영역이 남은 공간을 차지 */
+        }
+
+        #author-description {
+            font-size: 20px;
+        }
+
+        .book-info {
+            height: 700px;
+        }
+
         #book-list {
             display: grid;
             grid-template-columns: repeat(3, 1fr); /* 그리드 레이아웃으로 표시 */
@@ -82,7 +146,7 @@
         .book-item {
             background-color: #f8f9fa;
             padding: 10px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             border-radius: 5px;
             text-align: center;
             width: 220px;
@@ -98,29 +162,49 @@
             background-color: #e9ecef; /* 호버 시 배경색 변경 */
         }
 
-        #book-section {
-            max-height: 400px; /* UL의 최대 높이 제한 */
+        #book-grid {
+            max-height: 600px; /* UL의 최대 높이 제한 */
+            overflow-y: auto; /* 세로 스크롤 허용 */
+        }
+
+        #book-thumbnail {
+            object-fit: cover; /* 이미지 비율 유지 */
+            margin-bottom: 10px;
+        }
+
+        #book-description {
+            font-size: 18px;
+            line-height: 1.9;
+            overflow: hidden; /* 오버플로우된 텍스트 숨기기 */
+            text-overflow: ellipsis; /* 너무 긴 경우 생략 부호(...) 표시 */
             overflow-y: auto; /* 세로 스크롤 허용 */
         }
 
         /* 반응형 그리드: 화면이 작아질 때 열 수를 줄임 */
         @media (max-width: 768px) {
-            .book-list ul {
+            .contents ul {
                 grid-template-columns: repeat(2, 1fr); /* 2개의 열 */
             }
         }
 
         @media (max-width: 480px) {
-            .book-list ul {
+            .contents ul {
                 grid-template-columns: 1fr; /* 1개의 열 */
             }
         }
 
-        #author-name {
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            width: 600px;
+        .stat-selection {
+            margin-bottom: 30px;
+        }
+
+        #stat-dropdown {
+            border: 1px solid #d1c4a9;  /* 테두리 */
+            padding: 3px;  /* 내부 여백 */
+            border-radius: 5px;  /* 모서리 둥글게 */
+            font-size: 16px;  /* 글꼴 크기 */
+            width: 100px;  /* 드롭다운 너비 */
+            margin-left: 10px;
+            margin-right: 7px;
         }
 
         /* 버튼 스타일 */
@@ -148,7 +232,7 @@
             }
 
             .author-list,
-            .book-list {
+            .contents {
                 width: 100%;
             }
         }
@@ -156,64 +240,177 @@
 </head>
 <body>
     <div class="container">
-        <!-- 왼쪽: 작가 목록 -->
         <div class="author-list">
             <h2>노벨 문학상 수상자 목록</h2>
             <ul>
                 {% for author in authors %}
                     <li class="author-item" data-author-id="{{ author.id }}">
-                        {{ author.name }}
+                        <span class="author-name">{{ author.name }}</span>
+                        <span class="author-year">{{ author.nominated_year }}</span>
                     </li>
                 {% endfor %}
             </ul>
         </div>
 
-        <!-- 오른쪽: 저서 목록 및 설명 페이지 -->
-        <div class="book-list">
-            <h2 id="author-name">작가를 선택하세요</h2>
-            <div id="book-section">
-                <ul id="book-list">
-                    <!-- 책 목록이 여기에 동적으로 표시됩니다 -->
-                </ul>
+        <div class="contents">
+            <!-- 작가 설명 섹션 -->
+            <h2 id="author-name">작가를 선택해주세요.</h2>
+            <div id="author-info" class="author-info" style="display:none;">
+                <div class="author-content">
+                    <!-- 왼쪽: 작가 사진 -->
+                    <div class="author-portrait">
+                        <!-- 작가 사진 URL SRC 추가 요망!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
+                        <img id="author-image" src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Sully_Prudhomme%2C_Ren%C3%A9-Fran%C3%A7ois-Armand%2C_BNF_Gallica.jpg" alt="작가 초상화" />
+                    </div>
+                    <!-- 오른쪽: 작가 설명 -->
+                    <div class="author-details">
+                        <p id="author-description">작가 설명이 여기에 나옵니다.</p>
+                    </div>
+                </div>
             </div>
-            <div id="book-details" style="display:none;">
-                <!-- 책 설명이 여기에 동적으로 표시됩니다 -->
+
+            <!-- 책 목록 섹션 -->
+            <div id="book-info" class="book-info" style="display:none;">
+                <h2 id="book-title">저서 목록</h2>
+                <div id="book-grid">
+                    <ul id="book-list"></ul>
+                </div>
+
+                <div id="book-details" style="display:none;"></div>
+            </div>
+
+            <!-- 책 통계 섹션 -->
+            <div id="book-statics" class="book-statics" style="display:none;">
+                <h2 id="book-stat">저서 통계</h2>
+                <div id="stat-selection" class="stat-selection">
+
+                    <select id="stat-dropdown">
+                        <option value="sales_point">판매량</option>
+                        <option value="rating_score">별점</option>
+                        <option value="pricestandard">가격</option>
+                        <option value="best_rank">최고 순위</option>
+                    </select>
+                    <button id="stat-search">검색</button>
+                </div>
+
+
+                <canvas id="book-chart" width="400" height="200"></canvas>
             </div>
         </div>
+
     </div>
+
     <!-- jQuery와 AJAX 요청 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        $(document).ready(function() {
-            var currentAuthorName = '';
-            var isReadDetail = false;
-            // 작가 클릭 시 해당 작가의 책 목록 가져오기
-            $('.author-item').on('click', function() {
-                if (!isReadDetail) {
-                    var authorId = $(this).data('author-id');
-                    $.ajax({
-                        url: 'author/' + authorId + '/',
-                        type: 'GET',
-                        success: function(response) {
-                            $('#author-name').text(response.author+'의 저서 목록');
-                            currentAuthorName = response.author;
-                            var bookList = $('#book-list');
-                            bookList.empty();
-                            if (response.books.length > 0) {
-                                response.books.forEach(function(book) {
-                                    bookList.append('<li class="book-item" data-book-id="' + book.id + '">' + book.title + '</li>');
-                                });
-                            } else {s
-                                bookList.append('<li>저서가 없습니다.</li>');
+        var bookChart = null;
+        var bookTitles = [];
+        var bookDataByStat = {};
+        var currentStat = 'sales_point';
+
+        function initGrid() {
+            $('#book-title').html('저서 목록');
+            $('#book-details').hide();
+            $('#book-grid').show();
+        }
+
+        function updateChart(labels, data) {
+            if (bookChart) {
+                // 차트가 이미 생성되어 있으면 데이터를 업데이트하고 재렌더링
+                bookChart.data.labels = labels;  // 새로운 책 제목
+                bookChart.data.datasets[0].data = data;  // 새로운 판매량
+                bookChart.update();  // 차트를 업데이트하여 변경사항 반영
+            } else {
+                var ctx = document.getElementById('book-chart').getContext('2d'); // 저서 통계 구현
+                bookChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,  // 책 제목
+                        datasets: [{
+                            data: data,
+                            backgroundColor: 'olive',
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
                             }
                         },
-                        error: function(request, status, error) {
-                            //alert(error);
-                            alert('책 목록을 불러오는 데 실패했습니다.');
+                        plugins: {
+                            legend: {
+                                display: false  // 레이블 숨기기
+                            }
                         }
-                    });
-                }
+                    }
+                });
+            }
+        }
 
+        $(document).ready(function() {
+            // 작가 클릭 시 해당 작가의 책 목록 및 통계 가져오기
+            $('.author-item').on('click', function() {
+                var authorId = $(this).data('author-id');
+                $.ajax({
+                    url: 'author/' + authorId + '/',
+                    type: 'GET',
+                    success: function(response) {
+                        // 작가 설명 표시
+                        $('#author-name').text(response.author.name); // 작가 이름
+                        $('#author-description').text(response.author.description); // 작가 설명
+                        $('#author-image').attr('src', response.author.image);
+                        $('#author-info').show(); // 작가 설명 섹션 표시
+                        initGrid()
+                        $('#book-info').show(); // 저서 목록 표시
+                        $('#book-statics').show(); // 저서 통계 표시
+
+                        var bookList = $('#book-list'); // 저서 목록 구현, 책 제목 리스트 채우기
+                        bookList.empty();
+
+                        bookTitles = [];
+                        bookDataByStat = {};
+                        if (response.books.length > 0) {
+                            response.books.forEach(function(book) {
+                                bookList.append(
+                                    '<li class="book-item" data-book-id="' + book.id + '">' +
+                                    '<div class="book-thumbnail"><img id="author-image" src='+book.cover_url+' alt="작가 초상화" /></div>'+
+                                    book.title + '</li>'
+                                    );
+
+                                bookTitles.push(book.title);
+
+
+                                if (!bookDataByStat["sales_point"]) { bookDataByStat["sales_point"] = []; }
+                                bookDataByStat["sales_point"].push(book.sales_point);
+
+                                if (!bookDataByStat["pricesales"]) { bookDataByStat["pricesales"] = []; }
+                                bookDataByStat["pricesales"].push(book.pricesales);
+
+                                if (!bookDataByStat["pricestandard"]) { bookDataByStat["pricestandard"] = []; }
+                                bookDataByStat["pricestandard"].push(book.pricestandard);
+
+                                if (!bookDataByStat["rating_score"]) { bookDataByStat["rating_score"] = []; }
+                                bookDataByStat["rating_score"].push(book.rating_score);
+
+                                if (!bookDataByStat["rating_count"]) { bookDataByStat["rating_count"] = []; }
+                                bookDataByStat["rating_count"].push(book.rating_count);
+
+                                if (!bookDataByStat["best_rank"]) { bookDataByStat["best_rank"] = []; }
+                                bookDataByStat["best_rank"].push(book.best_rank);
+
+                            });
+                        } else {
+                            bookList.append('<li>저서가 없습니다.</li>');
+                        }
+                        updateChart(bookTitles, bookDataByStat[currentStat]);
+
+                    },
+                    error: function(request, status, error) {
+                        //alert(error);
+                        alert('책 목록을 불러오는 데 실패했습니다.');
+                    }
+                });
             });
 
             // 책 클릭 시 해당 책의 설명 페이지를 불러옴
@@ -224,11 +421,10 @@
                     type: 'GET',
                     success: function(response) {
                         // 책 목록을 숨기고 책 설명을 표시
-                        isReadDetail = true;
-                        $('#book-section').hide();
-                        $('#author-name').text(response.title); // 책 제목으로 변경
+                        $('#book-title').text(response.title);
+                        $('#book-grid').hide();
                         $('#book-details').html(
-                            '<p>' + response.description + '</p><br>' +
+                            '<p id=book-description>' + response.description + '</p><br>' +
                             '<button id="back-to-list">목록으로</button>'
                         ).show();
                     },
@@ -240,13 +436,14 @@
             });
 
             // 뒤로가기 버튼을 눌렀을 때
-            $(document).on('click', '#back-to-list', function() {
-                isReadDetail = false;
-                $('#book-details').hide();
-                $('#book-section').show();
-                $('#author-name').text(currentAuthorName + '의 저서 목록'); // 다시 목록으로 제목 복원
+            $(document).on('click', '#back-to-list', function() { initGrid() });
+            $(document).on('click', '#stat-search', function() {
+                // 드롭다운에서 선택된 값을 가져오기
+                currentStat = document.getElementById('stat-dropdown').value;
+                updateChart(bookTitles, bookDataByStat[currentStat]);
             });
         });
+
     </script>
 </body>
 </html>

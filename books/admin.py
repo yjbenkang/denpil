@@ -5,8 +5,8 @@ from django_apscheduler.models import DjangoJob, DjangoJobExecution
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
+    list_display = ('id', 'name', 'nominated_year')
+    search_fields = ('name', 'nominated_year', 'description')
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):

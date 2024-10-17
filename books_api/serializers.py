@@ -4,7 +4,7 @@ from books.models import Book, Author
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
-        fields = ['id', 'name']
+        fields = ['id', 'name', 'image', 'nominated_year', 'description']
 class BookSerializer(serializers.ModelSerializer):
     author = serializers.PrimaryKeyRelatedField(queryset=Author.objects.all())
     class Meta:
