@@ -180,6 +180,88 @@
             overflow-y: auto; /* 세로 스크롤 허용 */
         }
 
+        /* 책 상세 정보 컨테이너 */
+        .book-detail-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        /* 책 표지 이미지가 잘 맞도록 설정 */
+        .book-detail-left {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #book-cover {
+            width: 100%;          /* 이미지가 부모 요소의 전체 너비를 차지하게 설정 */
+            max-width: 150px;      /* 이미지 최대 너비를 150px로 설정 */
+            height: auto;          /* 자동으로 높이를 맞추어 비율 유지 */
+            object-fit: contain;   /* 이미지가 깨지지 않고 비율 유지 */
+            border-radius: 5px;    /* 이미지에 모서리 둥글기 추가 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 약간의 그림자 효과 */
+        }
+
+        /* 오른쪽: 책 세부 정보 */
+        .book-detail-right {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* 각 항목 간의 간격 */
+        }
+
+        /* 책 제목 스타일 */
+        .book-detail-right h3 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        /* 텍스트 설명 스타일 */
+        .book-detail-right p {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #666;
+        }
+
+        /* 책 링크 버튼 스타일 */
+        .book-detail-right a {
+            display: inline-block;
+            width: 100%; /* 버튼을 전체 너비로 설정 */
+            margin-top: 10px;
+            padding: 10px 15px;
+            background-color: #737300;  /* 기본 색상 */
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center; /* 텍스트를 가운데 정렬 */
+        }
+
+        .book-detail-right a:hover {
+            background-color: #5c5a00;  /* 호버 시 어울리는 진한 색상 */
+        }
+
+        /* 목록으로 돌아가기 버튼 스타일 */
+        #back-to-list {
+            background-color: #777;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px;
+        }
+
+        #back-to-list:hover {
+            background-color: #555;
+        }
+
         /* 반응형 그리드: 화면이 작아질 때 열 수를 줄임 */
         @media (max-width: 768px) {
             .contents ul {
@@ -424,8 +506,25 @@
                         $('#book-title').text(response.title);
                         $('#book-grid').hide();
                         $('#book-details').html(
-                            '<p id=book-description>' + response.description + '</p><br>' +
-                            '<button id="back-to-list">목록으로</button>'
+                            '<div class="book-detail-container">' +
+                                '<div class="book-detail-left">' +
+                                    '<img id="book-cover" src="' + response.cover_url + '" alt="책 표지" />' +
+                                '</div>' +
+                                '<div class="book-detail-right">' +
+                                    '<h3>' + response.title + '</h3>' +
+                                    '<p><strong>저자:</strong> ' + response.author + '</p>' +
+                                    '<p><strong>출판일:</strong> ' + response.pubdate + '</p>' +
+                                    '<p id="book-description"><strong>설명:</strong> ' + response.description + '</p>' +
+                                    '<p><strong>판매가:</strong> ' + response.pricesales + '원</p>' +
+                                    '<p><strong>정가:</strong> ' + response.pricestandard + '원</p>' +
+                                    '<p><strong>평점:</strong> ' + response.rating_score + ' (' + response.rating_count + '명)</p>' +
+                                    '<p><strong>베스트 순위:</strong> ' + response.best_rank + '</p>' +
+                                    '<p><strong>출판사:</strong> ' + response.publisher + '</p>' +
+                                    '<p><strong>판매 지수:</strong> ' + response.sales_point + '</p>' +
+                                    '<a href="' + response.link + '" target="_blank">책 링크</a>' +
+                                    '<button id="back-to-list">목록으로</button>' +
+                                '</div>' +
+                            '</div>'
                         ).show();
                     },
                     error: function(request, status, error) {
