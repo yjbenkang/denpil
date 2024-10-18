@@ -35,7 +35,7 @@ class BooksConfig(AppConfig):
         # 데이터베이스 연결 이후 작업 수행
         from .updater import update_all_authors, setup_scheduler, update_book_age_purchase_data
         await update_all_authors()
-        # await update_book_age_purchase_data()
+        await update_book_age_purchase_data()
         setup_scheduler()
         print("초기화 완료")
 

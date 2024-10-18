@@ -5,9 +5,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asgiref.sync import sync_to_async
 from pathlib import Path
 from .models import Book, Author
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
 from bs4 import BeautifulSoup
 import time
 from django.db import transaction
@@ -55,11 +52,16 @@ def get_author(author_name):
 def update_book_purchase_data(link, purchase_data):
     try:
         with transaction.atomic():
-            book = Book.objects.get(link=link)
-            book.purchase_data = purchase_data
-            book.save()
-    except Book.DoesNotExist:
-        print(f"Book with link {link} does not exist.")
+            books = Book.objects.filter(link=link)
+            if not books:
+                print(f"No book found with link {link}.")
+                return
+
+            for book in books:
+                book.age_gender_ratings = purchase_data
+                book.save()
+    except Exception as e:
+        print(f"Error updating book with link {link}: {e}")
 
 # 웹 스크래핑 함수
 async def age_purchase_data(url):
@@ -215,10 +217,10 @@ async def update_book_age_purchase_data(batch_size=3):
             print(f"Error during batch processing: {e}")
             continue
 
-        # for link, purchase_data in zip(links[i:i + batch_size], results):
-        #     if purchase_data:
-        #         print(f"Link: {link}, Purchase Data: {purchase_data}")
-                # await update_book_purchase_data(link, purchase_data)
+        for link, purchase_data in zip(links[i:i + batch_size], results):
+            if purchase_data:
+                print(f"Link: {link}, Purchase Data: {purchase_data}")
+                await update_book_purchase_data(link, purchase_data)
     
     end_time = time.time()
     print(f"연령별 구매 분포 데이터 업데이트: {end_time - start_time} 초")
