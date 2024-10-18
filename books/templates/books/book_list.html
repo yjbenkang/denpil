@@ -32,6 +32,54 @@
             border-bottom: 2px solid #d1c4a9;
             padding-bottom: 5px;
         }
+        #navbar {
+            position: fixed;
+            top: -10px;  /* 처음에 숨김 */
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #555;
+            color: #d1c4a9;
+            padding: 20px;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            transition: top 0.5s ease;
+        }
+
+        /* 프로젝트 제목 */
+        #project-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 20px;
+        }
+
+        /* 메뉴 탭 스타일 */
+        .menu {
+            list-style: none;
+            display: flex;
+            margin-right: 20px;
+        }
+
+        .menu li {
+            margin: 0 15px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: white;
+            font-size: 18px;
+            padding: 5px 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        /* 페이지 컨텐츠 스타일 */
+        .content {
+            padding: 100px;
+            text-align: center;
+        }
 
         /* 전체 컨테이너 */
         .container {
@@ -100,6 +148,7 @@
 
         .author-info {
             display: flex;
+            height: 250px;
             align-items: center;
             background-color: #f9f9f9;
             padding: 15px;
@@ -117,6 +166,7 @@
         .author-portrait img {
             width: 150px; /* 초상화 크기 */
             height: 150px;
+            box-shadow: 7px 7px 10px rgba(0, 0, 0, 0.2);
             object-fit: cover; /* 이미지 비율 유지 */
             border-radius: 5%; /* 원형으로 표시 */
         }
@@ -128,10 +178,14 @@
 
         #author-description {
             font-size: 20px;
+            line-height: 1.8;
+            max-height: 200px;
+            overflow-y: auto; /* 세로 스크롤 허용 */
         }
 
         .book-info {
             height: 700px;
+            margin-bottom: 30px;
         }
 
         #book-list {
@@ -247,14 +301,13 @@
 
         /* 목록으로 돌아가기 버튼 스타일 */
         #back-to-list {
-            background-color: #777;
-            color: white;
+            background-color: transparent;
+            color: olive;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s;
-            margin-top: 20px;
         }
 
         #back-to-list:hover {
@@ -320,6 +373,13 @@
     </style>
 </head>
 <body>
+    <div id="navbar">
+        <div id="project-title">DENPIL</div>
+        <ul class="menu">
+            <li><a href="">수상자</a></li>
+            <li><a href="">저서</a></li>
+        </ul>
+    </div>
     <div class="container">
         <div class="author-list">
             <h2>노벨 문학상 수상자 목록</h2>
@@ -340,8 +400,7 @@
                 <div class="author-content">
                     <!-- 왼쪽: 작가 사진 -->
                     <div class="author-portrait">
-                        <!-- 작가 사진 URL SRC 추가 요망!!!!!!!!!!!!!!!!!!!!!!!!!!! -->
-                        <img id="author-image" src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Sully_Prudhomme%2C_Ren%C3%A9-Fran%C3%A7ois-Armand%2C_BNF_Gallica.jpg" alt="작가 초상화" />
+                        <img id="author-image" src="" alt="작가 초상화" />
                     </div>
                     <!-- 오른쪽: 작가 설명 -->
                     <div class="author-details">
@@ -358,6 +417,11 @@
                 </div>
 
                 <div id="book-details" style="display:none;"></div>
+            </div>
+
+            <div id="age-gender-chart-container" style="display:none;">
+                <h2>구매자 분포</h2>
+                <canvas id="age-gender-chart" width="400" height="200"></canvas>
             </div>
 
             <!-- 책 통계 섹션 -->
@@ -385,7 +449,18 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        document.addEventListener('mousemove', function(event) {
+            var navbar = document.getElementById('navbar');
+            if (event.clientY < 60) {  // 마우스가 상단 30px 이내로 이동할 때
+                navbar.style.top = '0';  // 상단바 보이기
+            } else {
+                navbar.style.top = '-60px';  // 상단바 숨기기
+            }
+        });
+    </script>
+    <script>
         var bookChart = null;
+        var ageGenderChart = null;
         var bookTitles = [];
         var bookDataByStat = {};
         var currentStat = 'sales_point';
@@ -459,7 +534,12 @@
                                     book.title + '</li>'
                                     );
 
-                                bookTitles.push(book.title);
+                                var bookLabel = book.title;
+                                var labelMaxLength = 15;
+                                if (book.title.length>labelMaxLength) {
+                                    bookLabel = book.title.slice(0, labelMaxLength) + "...";
+                                }
+                                bookTitles.push(bookLabel);
 
 
                                 if (!bookDataByStat["sales_point"]) { bookDataByStat["sales_point"] = []; }
@@ -525,6 +605,80 @@
                                 '</div>' +
                             '</div>'
                         ).show();
+                        // 성별 연령대 데이터 추출 (undefined일 경우 0으로 설정)
+                        var ageGenderData = response.age_gender_ratings || {};
+                        var femaleData = [];
+                        var maleData = [];
+                        var ageGroups = ['10대', '20대', '30대', '40대', '50대', '60대 이상'];
+
+                        // 데이터를 연령대별로 나누기
+                        femaleData.push(ageGenderData['10대 여성'] || 0);
+                        maleData.push(ageGenderData['10대 남성'] || 0);
+                        femaleData.push(ageGenderData['20대 여성'] || 0);
+                        maleData.push(ageGenderData['20대 남성'] || 0);
+                        femaleData.push(ageGenderData['30대 여성'] || 0);
+                        maleData.push(ageGenderData['30대 남성'] || 0);
+                        femaleData.push(ageGenderData['40대 여성'] || 0);
+                        maleData.push(ageGenderData['40대 남성'] || 0);
+                        femaleData.push(ageGenderData['50대 여성'] || 0);
+                        maleData.push(ageGenderData['50대 남성'] || 0);
+                        femaleData.push(ageGenderData['60대 이상 여성'] || 0);
+                        maleData.push(ageGenderData['60대 이상 남성'] || 0);
+
+                        // 차트가 이미 있으면 데이터 업데이트
+                        if (ageGenderChart) {
+                            ageGenderChart.data.datasets[0].data = femaleData;
+                            ageGenderChart.data.datasets[1].data = maleData;
+                            ageGenderChart.update();
+                        } else {
+                            // 차트 초기화 및 그리기
+                            var ctx = document.getElementById('age-gender-chart').getContext('2d');
+                            ageGenderChart = new Chart(ctx, {
+                                type: 'bar',  // 'horizontalBar' 대신 'bar' 사용
+                                data: {
+                                    labels: ageGroups,
+                                    datasets: [{
+                                        label: '여성',
+                                        data: femaleData,
+                                        backgroundColor: 'pink',
+                                        borderColor: 'pink',
+                                        borderWidth: 1
+                                    },
+                                    {
+                                        label: '남성',
+                                        data: maleData,
+                                        backgroundColor: '#7CACF8',
+                                        borderColor: '#7CACF8',
+                                        borderWidth: 1
+                                    }]
+                                },
+                                options: {
+                                    indexAxis: 'y',  // 가로 막대형 차트를 위해 추가
+                                    scales: {
+                                        x: {
+                                            beginAtZero: true,
+                                            ticks: {
+                                                callback: function(value) {
+                                                    return value + '%';  // 값에 퍼센트 기호를 붙임
+                                                }
+                                            }
+                                        }
+                                    },
+                                    plugins: {
+                                        tooltip: {
+                                            callbacks: {
+                                                label: function(tooltipItem) {
+                                                    return tooltipItem.raw + '%';  // 툴팁에도 퍼센트 표시
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                        }
+
+                        // 차트 컨테이너 표시
+                        $('#age-gender-chart-container').show();
                     },
                     error: function(request, status, error) {
                         alert(error);
@@ -533,8 +687,17 @@
                 });
             });
 
+            // "목록으로" 버튼 클릭 시 차트와 책 설명을 숨기고 목록을 다시 표시
+            $(document).on('click', '#back-to-list', function() {
+                $('#book-details').hide();           // 책 설명 숨기기
+                $('#age-gender-chart-container').hide();  // 차트 숨기기
+                $('#book-grid').show();              // 책 목록 다시 표시
+            });
+
             // 뒤로가기 버튼을 눌렀을 때
             $(document).on('click', '#back-to-list', function() { initGrid() });
+
+            // 통계 검색 버튼을 눌렀을 때
             $(document).on('click', '#stat-search', function() {
                 // 드롭다운에서 선택된 값을 가져오기
                 currentStat = document.getElementById('stat-dropdown').value;
