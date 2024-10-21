@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Book, Author
+from .models import Book, Author, BookSalesInfo, PublisherSalesData, BookAgeGenderData, AuthorAgeGenderData
 from django_apscheduler.models import DjangoJob, DjangoJobExecution
 
 
@@ -14,3 +14,23 @@ class BookAdmin(admin.ModelAdmin):
     search_fields = ('title', 'author')
     list_filter = ('pubdate', 'publisher')
     ordering = ('-pubdate',)
+
+@admin.register(BookSalesInfo)
+class BookSalesInfoAdmin(admin.ModelAdmin):
+    list_display = ('book', 'pricesales', 'pricestandard', 'discount_price', 'discount_rate')
+    search_fields = ('book',)
+
+@admin.register(PublisherSalesData)
+class PublisherSalesAdmin(admin.ModelAdmin):
+    list_display = ('publisher', 'total_sales', 'book_count')
+    search_fields = ('publisher',)
+
+@admin.register(BookAgeGenderData)
+class BookAgeGenderAdmin(admin.ModelAdmin):
+    list_display = ('book', 'age_10', 'age_20', 'age_30', 'age_40', 'age_50', 'age_60', 'male', 'female')
+    search_fields = ('book',)
+
+@admin.register(AuthorAgeGenderData)
+class AuthorAgeGenderAdmin(admin.ModelAdmin):
+    list_display = ('author', 'age_10', 'age_20', 'age_30', 'age_40', 'age_50', 'age_60', 'male', 'female')
+    search_fields = ('author',)

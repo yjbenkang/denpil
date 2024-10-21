@@ -225,6 +225,7 @@ async def update_book_age_purchase_data(batch_size=3):
     end_time = time.time()
     print(f"연령별 구매 분포 데이터 업데이트: {end_time - start_time} 초")
 
+
 # 스케줄러 설정
 def setup_scheduler():
     scheduler.add_job(update_all_authors, 'interval', days=1)
