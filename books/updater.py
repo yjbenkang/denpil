@@ -64,7 +64,7 @@ def update_book_purchase_data(link, purchase_data):
         print(f"Error updating book with link {link}: {e}")
 
 # 웹 스크래핑 함수
-async def age_purchase_data(url):
+async def get_purchase_data(url):
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
@@ -84,7 +84,7 @@ async def age_purchase_data(url):
             try:
                 element = await page.query_selector('.Ere_prod_graphwrap_a')
                 if element:
-                    print("Element found")  # 디버깅 출력
+                    # print("Element found")  # 디버깅 출력
                     content = await element.inner_html()
                     soup = BeautifulSoup(content, 'html.parser')
                     data = soup.find_all('div', class_='per')
@@ -94,19 +94,20 @@ async def age_purchase_data(url):
                         purchase_data[age[i]] = float(data[i].text[:-1])
                     break
                 else:
-                    print("Element not found")  # 디버깅 출력
+                    # print("Element not found")  # 디버깅 출력
+                    pass
             except Exception as e:
                 print(f"Error: {e}")
 
             scroll += 1500
             if scroll >= 13500:
-                print("Reached maximum scroll limit")  # 디버깅 출력
+                # print("Reached maximum scroll limit")  # 디버깅 출력
                 break
             await page.evaluate(f"window.scrollTo(0, {scroll});")
             await asyncio.sleep(SCROLL_PAUSE_TIME)
 
         await browser.close()
-        print("Purchase data:", purchase_data)  # 디버깅 출력
+        # print("Purchase data:", purchase_data)  # 디버깅 출력
         return purchase_data
 
 # 비동기 함수
@@ -143,6 +144,9 @@ async def update_data(author, session):
         bestRank = item.get('bestRank', 0)
         link = item.get('link', '')
         isbn13 = item.get('isbn13', '')
+        stock_status = item.get('stockStatus', '')
+        if stock_status == '':
+            stock_status = '판매중'
         
         if isbn13:
             lookup_url = f'http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?ttbkey={key}&itemIdType=ISBN13&ItemId={isbn13}&output=js&Version=20131101&OptResult=ebookList,usedList,reviewList&OptResult=ratinginfo'
@@ -173,6 +177,7 @@ async def update_data(author, session):
             best_duration=bestDuration,
             best_rank=bestRank,
             link=link,
+            stock_status=stock_status
         )
 
         await save_book(book)
@@ -195,15 +200,15 @@ async def update_all_authors():
     end_time = time.time()
     print(f"총 소요 시간: {end_time - start_time} 초")
 
-async def update_book_age_purchase_data(batch_size=3):
-    start_time = time.time()
+async def get_book_purchase_data_by_batch(batch_size=3):
+    # start_time = time.time()
     links = await get_link()
     
     if not links:
         print("No links found")  # 디버깅 출력
         return
 
-    tasks = [age_purchase_data(link) for link in links]
+    tasks = [get_purchase_data(link) for link in links]
 
     # 작업을 배치로 나누기
     for i in range(0, len(tasks), batch_size):
@@ -219,17 +224,17 @@ async def update_book_age_purchase_data(batch_size=3):
 
         for link, purchase_data in zip(links[i:i + batch_size], results):
             if purchase_data:
-                print(f"Link: {link}, Purchase Data: {purchase_data}")
+                # print(f"Link: {link}, Purchase Data: {purchase_data}")
                 await update_book_purchase_data(link, purchase_data)
     
-    end_time = time.time()
-    print(f"연령별 구매 분포 데이터 업데이트: {end_time - start_time} 초")
+    # end_time = time.time()
+    # print(f"연령별 구매 분포 데이터 업데이트: {end_time - start_time} 초")
 
 
 # 스케줄러 설정
 def setup_scheduler():
     scheduler.add_job(update_all_authors, 'interval', days=1)
-    scheduler.add_job(update_book_age_purchase_data, 'interval', days=1)
+    scheduler.add_job(get_book_purchase_data_by_batch, 'interval', days=1)
     scheduler.start()
     print('setup_scheduler 완료')
 

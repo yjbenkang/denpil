@@ -25,6 +25,7 @@ class Book(models.Model):
     cover_url = models.URLField()
     link = models.URLField()
     age_gender_ratings = models.JSONField(default=dict, blank=True)
+    stock_status = models.CharField(max_length=200, default='')
 
     def __str__(self):
         return self.title

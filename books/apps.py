@@ -33,14 +33,14 @@ class BooksConfig(AppConfig):
             return
 
         # 데이터베이스 연결 이후 작업 수행
-        from .updater import update_all_authors, setup_scheduler, update_book_age_purchase_data
+        from .updater import update_all_authors, setup_scheduler, get_book_purchase_data_by_batch
         from .update_datamart import update_book_sales_info, update_publisher_sales_point, update_book_age_gender_data, update_author_age_gender_data
         # await update_all_authors()
-        # await update_book_age_purchase_data()
-        await update_book_sales_info()
-        await update_publisher_sales_point()
-        await update_book_age_gender_data()
-        await update_author_age_gender_data()
+        # await get_book_purchase_data_by_batch()
+        # await update_book_sales_info()
+        # await update_publisher_sales_point()
+        # await update_book_age_gender_data()
+        # await update_author_age_gender_data()
         # setup_scheduler()
         print("초기화 완료")
 
