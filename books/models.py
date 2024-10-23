@@ -73,7 +73,7 @@ class BookAgeGenderData(models.Model):
         return f"{self.book.title} - 연령/성별 데이터"
 
 class AuthorAgeGenderData(models.Model):
-    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="age_gender_data")
+    author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="author_age_gender_data")
 
     # 연령대별 데이터
     age_10 = models.FloatField(default=0.0)

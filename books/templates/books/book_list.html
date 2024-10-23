@@ -1,710 +1,597 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>denpil</title>
+{% extends 'books/base.html' %}
+{% block extra_head %}
+<style>
+    /* 작가 목록 섹션 */
+    .author-list {
+        width: 30%;
+        padding: 20px;
+        background-color: #faf8f3;
+        border-radius: 10px;
+        border: 1px solid #d1c4a9;
+    }
 
-    <!-- Google Fonts 사용 (예: Merriweather 폰트) -->
-    <link href="https://fonts.googleapis.com/earlyaccess/notosanskr.css" rel="stylesheet">
-    <style>
-        /* 기본적인 Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+    /* 작가 아이템 스타일 */
+    .author-item {
+        display: flex;
+        justify-content: space-between; /* 왼쪽과 오른쪽 끝으로 배치 */
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        background-color: #fdfdfb;
+        border: 1px solid #eae7db;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+    }
 
-        body {
-            //background-color: #dbd6d0;
-            font-family: 'Noto Sans KR', serif;
-            color: #333;
-            line-height: 1.6;
-            padding: 40px;
-        }
+    .author-item:hover {
+        background-color: #e7e4d6;
+        transform: translateY(-3px);
+    }
 
-        h2 {
-            font-size: 22px;
-            color: #4a4a4a;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            border-bottom: 2px solid #d1c4a9;
-            padding-bottom: 5px;
-        }
-        #navbar {
-            position: fixed;
-            top: -10px;  /* 처음에 숨김 */
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background-color: #555;
-            color: #d1c4a9;
-            padding: 20px;
-            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-            transition: top 0.5s ease;
-        }
+    .author-name {
+        flex-grow: 1; /* 이름을 왼쪽에 */
+        text-align: left;
+    }
 
-        /* 프로젝트 제목 */
-        #project-title {
-            font-size: 24px;
-            font-weight: bold;
-            margin-left: 20px;
-        }
+    .author-year {
+        text-align: right;
+        color: #888; /* 연도의 색상을 약간 어둡게 */
+    }
 
-        /* 메뉴 탭 스타일 */
-        .menu {
-            list-style: none;
-            display: flex;
-            margin-right: 20px;
-        }
+    #author-name {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
 
-        .menu li {
-            margin: 0 15px;
-        }
+    .author-info {
+        display: flex;
+        height: 250px;
+        align-items: center;
+        background-color: #f9f9f9;
+        padding: 15px;
+        margin-bottom: 30px; /* 책 목록과의 간격 */
+    }
 
-        .menu a {
-            text-decoration: none;
-            color: white;
-            font-size: 18px;
-            padding: 5px 10px;
-            transition: background-color 0.3s ease;
-        }
+    .author-content {
+        display: flex;
+        align-items: center;  /* 사진과 설명을 세로로 가운데 정렬 */
+        justify-content: space-between; /* 공간 균등 분배 */
+        gap: 30px; /* 사진과 설명 사이 간격 */
+    }
 
-        /* 페이지 컨텐츠 스타일 */
-        .content {
-            padding: 100px;
-            text-align: center;
-        }
+    /* 작가 초상화 스타일 */
+    .author-portrait img {
+        width: 150px; /* 초상화 크기 */
+        height: 150px;
+        box-shadow: 7px 7px 10px rgba(0, 0, 0, 0.2);
+        object-fit: cover; /* 이미지 비율 유지 */
+        border-radius: 5%; /* 원형으로 표시 */
+    }
 
-        /* 전체 컨테이너 */
+    /* 작가 설명 스타일 */
+    .author-details {
+        flex-grow: 1; /* 설명 영역이 남은 공간을 차지 */
+    }
+
+    #author-description {
+        font-size: 20px;
+        line-height: 1.8;
+        max-height: 200px;
+        overflow-y: auto; /* 세로 스크롤 허용 */
+    }
+
+    .book-info {
+        margin-bottom: 50px;
+    }
+
+    #book-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 그리드 레이아웃으로 표시 */
+        gap: 20px; /* 그리드 항목 사이 간격 */
+        padding: 0;
+        list-style: none;
+    }
+
+    /* LI 스타일 */
+    .book-item {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        width: 220px;
+        overflow: hidden; /* 오버플로우된 텍스트 숨기기 */
+        white-space: nowrap; /* 한 줄로 표시 */
+        text-overflow: ellipsis; /* 너무 긴 경우 생략 부호(...) 표시 */
+        max-width: 100%; /* 최대 너비를 그리드 셀에 맞춤 */
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .book-item:hover {
+        background-color: #e9ecef; /* 호버 시 배경색 변경 */
+    }
+
+    #book-grid {
+        max-height: 600px; /* UL의 최대 높이 제한 */
+        overflow-y: auto; /* 세로 스크롤 허용 */
+    }
+
+    #book-thumbnail {
+        object-fit: cover; /* 이미지 비율 유지 */
+        margin-bottom: 10px;
+    }
+
+    #book-description {
+        line-height: 1.9;
+        overflow: hidden; /* 오버플로우된 텍스트 숨기기 */
+        text-overflow: ellipsis; /* 너무 긴 경우 생략 부호(...) 표시 */
+        overflow-y: auto; /* 세로 스크롤 허용 */
+    }
+
+    /* 책 상세 정보 컨테이너 */
+    .book-detail-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+    /* 책 표지 이미지가 잘 맞도록 설정 */
+    .book-detail-left {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #book-cover {
+        width: 100%;          /* 이미지가 부모 요소의 전체 너비를 차지하게 설정 */
+        max-width: 150px;      /* 이미지 최대 너비를 150px로 설정 */
+        height: auto;          /* 자동으로 높이를 맞추어 비율 유지 */
+        object-fit: contain;   /* 이미지가 깨지지 않고 비율 유지 */
+        border-radius: 5px;    /* 이미지에 모서리 둥글기 추가 */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 약간의 그림자 효과 */
+    }
+
+    /* 오른쪽: 책 세부 정보 */
+    .book-detail-right {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* 각 항목 간의 간격 */
+    }
+
+    /* 책 제목 스타일 */
+    .book-detail-right h3 {
+        font-size: 24px;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    /* 텍스트 설명 스타일 */
+    .book-detail-right p {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #666;
+    }
+
+    /* 책 링크 버튼 스타일 */
+    .book-detail-right a {
+        display: inline-block;
+        width: 100%; /* 버튼을 전체 너비로 설정 */
+        margin-top: 10px;
+        padding: 10px 15px;
+        background-color: #737300;  /* 기본 색상 */
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center; /* 텍스트를 가운데 정렬 */
+    }
+
+    .book-detail-right a:hover {
+        background-color: #5c5a00;  /* 호버 시 어울리는 진한 색상 */
+    }
+
+    /* 목록으로 돌아가기 버튼 스타일 */
+    #back-to-list {
+        background-color: transparent;
+        color: olive;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    #age-gender-chart-container {
+        margin-bottom: 50px;
+    }
+
+    #back-to-list:hover {
+        background-color: #555;
+    }
+
+    /* 반응형 그리드: 화면이 작아질 때 열 수를 줄임 */
+    @media (max-width: 768px) {
+        .contents ul {
+            grid-template-columns: repeat(2, 1fr); /* 2개의 열 */
+        }
+    }
+
+    @media (max-width: 480px) {
+        .contents ul {
+            grid-template-columns: 1fr; /* 1개의 열 */
+        }
+    }
+
+    .stat-selection {
+        margin-bottom: 30px;
+    }
+
+    #stat-dropdown {
+        border: 1px solid #d1c4a9;  /* 테두리 */
+        padding: 3px;  /* 내부 여백 */
+        border-radius: 5px;  /* 모서리 둥글게 */
+        font-size: 16px;  /* 글꼴 크기 */
+        width: 100px;  /* 드롭다운 너비 */
+        margin-left: 10px;
+        margin-right: 7px;
+    }
+
+    /* 버튼 스타일 */
+    button {
+        background-color: transparent;
+        color: #b09c64;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    button:hover {
+        background-color: #777;
+    }
+
+
+    /* 반응형 레이아웃 */
+    @media (max-width: 768px) {
         .container {
-            display: flex;
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            border: 1px solid #d1c4a9;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .contents {
-            width: 900px;
-        }
-
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        /* 작가 목록 섹션 */
-        .author-list {
-            width: 30%;
-            padding: 20px;
-            background-color: #faf8f3;
-            border-radius: 10px;
-            border: 1px solid #d1c4a9;
-        }
-
-        /* 작가 아이템 스타일 */
-        .author-item {
-            display: flex;
-            justify-content: space-between; /* 왼쪽과 오른쪽 끝으로 배치 */
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            background-color: #fdfdfb;
-            border: 1px solid #eae7db;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-
-        .author-item:hover {
-            background-color: #e7e4d6;
-            transform: translateY(-3px);
-        }
-
-        .author-name {
-            flex-grow: 1; /* 이름을 왼쪽에 */
-            text-align: left;
-        }
-
-        .author-year {
-            text-align: right;
-            color: #888; /* 연도의 색상을 약간 어둡게 */
-        }
-
-        #author-name {
-            overflow: hidden;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-        }
-
-        .author-info {
-            display: flex;
-            height: 250px;
-            align-items: center;
-            background-color: #f9f9f9;
-            padding: 15px;
-            margin-bottom: 30px; /* 책 목록과의 간격 */
-        }
-
-        .author-content {
-            display: flex;
-            align-items: center;  /* 사진과 설명을 세로로 가운데 정렬 */
-            justify-content: space-between; /* 공간 균등 분배 */
-            gap: 30px; /* 사진과 설명 사이 간격 */
-        }
-
-        /* 작가 초상화 스타일 */
-        .author-portrait img {
-            width: 150px; /* 초상화 크기 */
-            height: 150px;
-            box-shadow: 7px 7px 10px rgba(0, 0, 0, 0.2);
-            object-fit: cover; /* 이미지 비율 유지 */
-            border-radius: 5%; /* 원형으로 표시 */
-        }
-
-        /* 작가 설명 스타일 */
-        .author-details {
-            flex-grow: 1; /* 설명 영역이 남은 공간을 차지 */
-        }
-
-        #author-description {
-            font-size: 20px;
-            line-height: 1.8;
-            max-height: 200px;
-            overflow-y: auto; /* 세로 스크롤 허용 */
-        }
-
-        .book-info {
-            height: 700px;
-            margin-bottom: 30px;
-        }
-
-        #book-list {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 그리드 레이아웃으로 표시 */
-            gap: 20px; /* 그리드 항목 사이 간격 */
-            padding: 0;
-            list-style: none;
-        }
-
-        /* LI 스타일 */
-        .book-item {
-            background-color: #f8f9fa;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            text-align: center;
-            width: 220px;
-            overflow: hidden; /* 오버플로우된 텍스트 숨기기 */
-            white-space: nowrap; /* 한 줄로 표시 */
-            text-overflow: ellipsis; /* 너무 긴 경우 생략 부호(...) 표시 */
-            max-width: 100%; /* 최대 너비를 그리드 셀에 맞춤 */
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .book-item:hover {
-            background-color: #e9ecef; /* 호버 시 배경색 변경 */
-        }
-
-        #book-grid {
-            max-height: 600px; /* UL의 최대 높이 제한 */
-            overflow-y: auto; /* 세로 스크롤 허용 */
-        }
-
-        #book-thumbnail {
-            object-fit: cover; /* 이미지 비율 유지 */
-            margin-bottom: 10px;
-        }
-
-        #book-description {
-            line-height: 1.9;
-            overflow: hidden; /* 오버플로우된 텍스트 숨기기 */
-            text-overflow: ellipsis; /* 너무 긴 경우 생략 부호(...) 표시 */
-            overflow-y: auto; /* 세로 스크롤 허용 */
-        }
-
-        /* 책 상세 정보 컨테이너 */
-        .book-detail-container {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        /* 책 표지 이미지가 잘 맞도록 설정 */
-        .book-detail-left {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #book-cover {
-            width: 100%;          /* 이미지가 부모 요소의 전체 너비를 차지하게 설정 */
-            max-width: 150px;      /* 이미지 최대 너비를 150px로 설정 */
-            height: auto;          /* 자동으로 높이를 맞추어 비율 유지 */
-            object-fit: contain;   /* 이미지가 깨지지 않고 비율 유지 */
-            border-radius: 5px;    /* 이미지에 모서리 둥글기 추가 */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 약간의 그림자 효과 */
-        }
-
-        /* 오른쪽: 책 세부 정보 */
-        .book-detail-right {
-            flex: 2;
-            display: flex;
             flex-direction: column;
-            gap: 10px; /* 각 항목 간의 간격 */
         }
 
-        /* 책 제목 스타일 */
-        .book-detail-right h3 {
-            font-size: 24px;
-            color: #333;
-            margin-bottom: 10px;
+        .author-list,
+        .contents {
+            width: 100%;
         }
+    }
+</style>
+{% endblock %}
 
-        /* 텍스트 설명 스타일 */
-        .book-detail-right p {
-            font-size: 16px;
-            line-height: 1.5;
-            color: #666;
-        }
-
-        /* 책 링크 버튼 스타일 */
-        .book-detail-right a {
-            display: inline-block;
-            width: 100%; /* 버튼을 전체 너비로 설정 */
-            margin-top: 10px;
-            padding: 10px 15px;
-            background-color: #737300;  /* 기본 색상 */
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center; /* 텍스트를 가운데 정렬 */
-        }
-
-        .book-detail-right a:hover {
-            background-color: #5c5a00;  /* 호버 시 어울리는 진한 색상 */
-        }
-
-        /* 목록으로 돌아가기 버튼 스타일 */
-        #back-to-list {
-            background-color: transparent;
-            color: olive;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #back-to-list:hover {
-            background-color: #555;
-        }
-
-        /* 반응형 그리드: 화면이 작아질 때 열 수를 줄임 */
-        @media (max-width: 768px) {
-            .contents ul {
-                grid-template-columns: repeat(2, 1fr); /* 2개의 열 */
-            }
-        }
-
-        @media (max-width: 480px) {
-            .contents ul {
-                grid-template-columns: 1fr; /* 1개의 열 */
-            }
-        }
-
-        .stat-selection {
-            margin-bottom: 30px;
-        }
-
-        #stat-dropdown {
-            border: 1px solid #d1c4a9;  /* 테두리 */
-            padding: 3px;  /* 내부 여백 */
-            border-radius: 5px;  /* 모서리 둥글게 */
-            font-size: 16px;  /* 글꼴 크기 */
-            width: 100px;  /* 드롭다운 너비 */
-            margin-left: 10px;
-            margin-right: 7px;
-        }
-
-        /* 버튼 스타일 */
-        button {
-            background-color: transparent;
-            color: #b09c64;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        button:hover {
-            background-color: #777;
-        }
-
-
-        /* 반응형 레이아웃 */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .author-list,
-            .contents {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div id="navbar">
-        <div id="project-title">DENPIL</div>
-        <ul class="menu">
-            <li><a href="">수상자</a></li>
-            <li><a href="">저서</a></li>
+{% block content %}
+<div class="container">
+    <div class="author-list">
+        <h2>노벨 문학상 수상자 목록</h2>
+        <ul>
+            {% for author in authors %}
+                <li class="author-item" data-author-id="{{ author.id }}">
+                    <span class="author-name">{{ author.name }}</span>
+                    <span class="author-year">{{ author.nominated_year }}</span>
+                </li>
+            {% endfor %}
         </ul>
     </div>
-    <div class="container">
-        <div class="author-list">
-            <h2>노벨 문학상 수상자 목록</h2>
-            <ul>
-                {% for author in authors %}
-                    <li class="author-item" data-author-id="{{ author.id }}">
-                        <span class="author-name">{{ author.name }}</span>
-                        <span class="author-year">{{ author.nominated_year }}</span>
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
 
-        <div class="contents">
-            <!-- 작가 설명 섹션 -->
-            <h2 id="author-name">작가를 선택해주세요.</h2>
-            <div id="author-info" class="author-info" style="display:none;">
-                <div class="author-content">
-                    <!-- 왼쪽: 작가 사진 -->
-                    <div class="author-portrait">
-                        <img id="author-image" src="" alt="작가 초상화" />
-                    </div>
-                    <!-- 오른쪽: 작가 설명 -->
-                    <div class="author-details">
-                        <p id="author-description">작가 설명이 여기에 나옵니다.</p>
-                    </div>
+    <div class="contents">
+        <!-- 작가 설명 섹션 -->
+        <h2 id="author-name">작가를 선택해주세요.</h2>
+        <div id="author-info" class="author-info" style="display:none;">
+            <div class="author-content">
+                <!-- 왼쪽: 작가 사진 -->
+                <div class="author-portrait">
+                    <img id="author-image" src="" alt="작가 초상화" />
                 </div>
-            </div>
-
-            <!-- 책 목록 섹션 -->
-            <div id="book-info" class="book-info" style="display:none;">
-                <h2 id="book-title">저서 목록</h2>
-                <div id="book-grid">
-                    <ul id="book-list"></ul>
+                <!-- 오른쪽: 작가 설명 -->
+                <div class="author-details">
+                    <p id="author-description">작가 설명이 여기에 나옵니다.</p>
                 </div>
-
-                <div id="book-details" style="display:none;"></div>
-            </div>
-
-            <div id="age-gender-chart-container" style="display:none;">
-                <h2>구매자 분포</h2>
-                <canvas id="age-gender-chart" width="400" height="200"></canvas>
-            </div>
-
-            <!-- 책 통계 섹션 -->
-            <div id="book-statics" class="book-statics" style="display:none;">
-                <h2 id="book-stat">저서 통계</h2>
-                <div id="stat-selection" class="stat-selection">
-
-                    <select id="stat-dropdown">
-                        <option value="sales_point">판매량</option>
-                        <option value="rating_score">별점</option>
-                        <option value="pricestandard">가격</option>
-                        <option value="best_rank">최고 순위</option>
-                    </select>
-                    <button id="stat-search">검색</button>
-                </div>
-
-
-                <canvas id="book-chart" width="400" height="200"></canvas>
             </div>
         </div>
 
+        <!-- 책 목록 섹션 -->
+        <div id="book-info" class="book-info" style="display:none;">
+            <h2 id="book-title">저서 목록</h2>
+            <div id="book-grid">
+                <ul id="book-list"></ul>
+            </div>
+
+            <div id="book-details" style="display:none;"></div>
+        </div>
+
+        <div id="age-gender-chart-container" style="display:none;">
+            <h2>구매자 분포</h2>
+            <canvas id="age-gender-chart" width="400" height="200"></canvas>
+        </div>
+
+        <!-- 책 통계 섹션 -->
+        <div id="book-statics" class="book-statics" style="display:none;">
+            <h2 id="book-stat">저서 통계</h2>
+            <div id="stat-selection" class="stat-selection">
+
+                <select id="stat-dropdown">
+                    <option value="sales_point">판매량</option>
+                    <option value="rating_score">별점</option>
+                    <option value="pricestandard">가격</option>
+                    <option value="best_rank">최고 순위</option>
+                </select>
+                <button id="stat-search">검색</button>
+            </div>
+
+
+            <canvas id="book-chart" width="400" height="200"></canvas>
+        </div>
     </div>
 
-    <!-- jQuery와 AJAX 요청 -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('mousemove', function(event) {
-            var navbar = document.getElementById('navbar');
-            if (event.clientY < 60) {  // 마우스가 상단 30px 이내로 이동할 때
-                navbar.style.top = '0';  // 상단바 보이기
-            } else {
-                navbar.style.top = '-60px';  // 상단바 숨기기
-            }
-        });
-    </script>
-    <script>
-        var bookChart = null;
-        var ageGenderChart = null;
-        var bookTitles = [];
-        var bookDataByStat = {};
-        var currentStat = 'sales_point';
+</div>
+{% endblock %}
 
-        function initGrid() {
-            $('#book-title').html('저서 목록');
-            $('#book-details').hide();
-            $('#book-grid').show();
-        }
+{% block extra_scripts %}
+<!-- jQuery와 AJAX 요청 -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var bookChart = null;
+    var ageGenderChart = null;
+    var bookTitles = [];
+    var bookDataByStat = {};
+    var currentStat = 'sales_point';
 
-        function updateChart(labels, data) {
-            if (bookChart) {
-                // 차트가 이미 생성되어 있으면 데이터를 업데이트하고 재렌더링
-                bookChart.data.labels = labels;  // 새로운 책 제목
-                bookChart.data.datasets[0].data = data;  // 새로운 판매량
-                bookChart.update();  // 차트를 업데이트하여 변경사항 반영
-            } else {
-                var ctx = document.getElementById('book-chart').getContext('2d'); // 저서 통계 구현
-                bookChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,  // 책 제목
-                        datasets: [{
-                            data: data,
-                            backgroundColor: 'olive',
-                        }]
+    function initGrid() {
+        $('#book-title').html('저서 목록');
+        $('#book-details').hide();
+        $('#book-grid').show();
+    }
+
+    function updateChart(labels, data) {
+        if (bookChart) {
+            // 차트가 이미 생성되어 있으면 데이터를 업데이트하고 재렌더링
+            bookChart.data.labels = labels;  // 새로운 책 제목
+            bookChart.data.datasets[0].data = data;  // 새로운 판매량
+            bookChart.update();  // 차트를 업데이트하여 변경사항 반영
+        } else {
+            var ctx = document.getElementById('book-chart').getContext('2d'); // 저서 통계 구현
+            bookChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,  // 책 제목
+                    datasets: [{
+                        data: data,
+                        backgroundColor: 'olive',
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     },
-                    options: {
-                        scales: {
-                            y: {
-                                beginAtZero: true
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false  // 레이블 숨기기
-                            }
+                    plugins: {
+                        legend: {
+                            display: false  // 레이블 숨기기
                         }
                     }
-                });
-            }
-        }
-
-        $(document).ready(function() {
-            // 작가 클릭 시 해당 작가의 책 목록 및 통계 가져오기
-            $('.author-item').on('click', function() {
-                var authorId = $(this).data('author-id');
-                $.ajax({
-                    url: 'author/' + authorId + '/',
-                    type: 'GET',
-                    success: function(response) {
-                        // 작가 설명 표시
-                        $('#author-name').text(response.author.name); // 작가 이름
-                        $('#author-description').text(response.author.description); // 작가 설명
-                        $('#author-image').attr('src', response.author.image);
-                        $('#author-info').show(); // 작가 설명 섹션 표시
-                        initGrid()
-                        $('#book-info').show(); // 저서 목록 표시
-                        $('#book-statics').show(); // 저서 통계 표시
-
-                        var bookList = $('#book-list'); // 저서 목록 구현, 책 제목 리스트 채우기
-                        bookList.empty();
-
-                        bookTitles = [];
-                        bookDataByStat = {};
-                        if (response.books.length > 0) {
-                            response.books.forEach(function(book) {
-                                bookList.append(
-                                    '<li class="book-item" data-book-id="' + book.id + '">' +
-                                    '<div class="book-thumbnail"><img id="author-image" src='+book.cover_url+' alt="작가 초상화" /></div>'+
-                                    book.title + '</li>'
-                                    );
-
-                                var bookLabel = book.title;
-                                var labelMaxLength = 15;
-                                if (book.title.length>labelMaxLength) {
-                                    bookLabel = book.title.slice(0, labelMaxLength) + "...";
-                                }
-                                bookTitles.push(bookLabel);
-
-
-                                if (!bookDataByStat["sales_point"]) { bookDataByStat["sales_point"] = []; }
-                                bookDataByStat["sales_point"].push(book.sales_point);
-
-                                if (!bookDataByStat["pricesales"]) { bookDataByStat["pricesales"] = []; }
-                                bookDataByStat["pricesales"].push(book.pricesales);
-
-                                if (!bookDataByStat["pricestandard"]) { bookDataByStat["pricestandard"] = []; }
-                                bookDataByStat["pricestandard"].push(book.pricestandard);
-
-                                if (!bookDataByStat["rating_score"]) { bookDataByStat["rating_score"] = []; }
-                                bookDataByStat["rating_score"].push(book.rating_score);
-
-                                if (!bookDataByStat["rating_count"]) { bookDataByStat["rating_count"] = []; }
-                                bookDataByStat["rating_count"].push(book.rating_count);
-
-                                if (!bookDataByStat["best_rank"]) { bookDataByStat["best_rank"] = []; }
-                                bookDataByStat["best_rank"].push(book.best_rank);
-
-                            });
-                        } else {
-                            bookList.append('<li>저서가 없습니다.</li>');
-                        }
-                        updateChart(bookTitles, bookDataByStat[currentStat]);
-
-                    },
-                    error: function(request, status, error) {
-                        //alert(error);
-                        alert('책 목록을 불러오는 데 실패했습니다.');
-                    }
-                });
+                }
             });
+        }
+    }
 
-            // 책 클릭 시 해당 책의 설명 페이지를 불러옴
-            $(document).on('click', '.book-item', function() {
-                var bookId = $(this).data('book-id');
-                $.ajax({
-                    url: 'book/' + bookId + '/',
-                    type: 'GET',
-                    success: function(response) {
-                        // 책 목록을 숨기고 책 설명을 표시
-                        $('#book-title').text(response.title);
-                        $('#book-grid').hide();
-                        $('#book-details').html(
-                            '<div class="book-detail-container">' +
-                                '<div class="book-detail-left">' +
-                                    '<img id="book-cover" src="' + response.cover_url + '" alt="책 표지" />' +
-                                '</div>' +
-                                '<div class="book-detail-right">' +
-                                    '<h3>' + response.title + '</h3>' +
-                                    '<p><strong>저자:</strong> ' + response.author + '</p>' +
-                                    '<p><strong>출판일:</strong> ' + response.pubdate + '</p>' +
-                                    '<p id="book-description"><strong>설명:</strong> ' + response.description + '</p>' +
-                                    '<p><strong>판매가:</strong> ' + response.pricesales + '원</p>' +
-                                    '<p><strong>정가:</strong> ' + response.pricestandard + '원</p>' +
-                                    '<p><strong>평점:</strong> ' + response.rating_score + ' (' + response.rating_count + '명)</p>' +
-                                    '<p><strong>베스트 순위:</strong> ' + response.best_rank + '</p>' +
-                                    '<p><strong>출판사:</strong> ' + response.publisher + '</p>' +
-                                    '<p><strong>판매 지수:</strong> ' + response.sales_point + '</p>' +
-                                    '<a href="' + response.link + '" target="_blank">책 링크</a>' +
-                                    '<button id="back-to-list">목록으로</button>' +
-                                '</div>' +
-                            '</div>'
-                        ).show();
-                        // 성별 연령대 데이터 추출 (undefined일 경우 0으로 설정)
-                        var ageGenderData = response.age_gender_ratings || {};
-                        var femaleData = [];
-                        var maleData = [];
-                        var ageGroups = ['10대', '20대', '30대', '40대', '50대', '60대 이상'];
+    $(document).ready(function() {
+        // 작가 클릭 시 해당 작가의 책 목록 및 통계 가져오기
+        $('.author-item').on('click', function() {
+            var authorId = $(this).data('author-id');
+            $.ajax({
+                url: 'author/' + authorId + '/',
+                type: 'GET',
+                success: function(response) {
+                    // 작가 설명 표시
+                    $('#author-name').text(response.author.name); // 작가 이름
+                    $('#author-description').text(response.author.description); // 작가 설명
+                    $('#author-image').attr('src', response.author.image);
+                    $('#author-info').show(); // 작가 설명 섹션 표시
+                    initGrid()
+                    $('#book-info').show(); // 저서 목록 표시
+                    $('#book-statics').show(); // 저서 통계 표시
 
-                        // 데이터를 연령대별로 나누기
-                        femaleData.push(ageGenderData['10대 여성'] || 0);
-                        maleData.push(ageGenderData['10대 남성'] || 0);
-                        femaleData.push(ageGenderData['20대 여성'] || 0);
-                        maleData.push(ageGenderData['20대 남성'] || 0);
-                        femaleData.push(ageGenderData['30대 여성'] || 0);
-                        maleData.push(ageGenderData['30대 남성'] || 0);
-                        femaleData.push(ageGenderData['40대 여성'] || 0);
-                        maleData.push(ageGenderData['40대 남성'] || 0);
-                        femaleData.push(ageGenderData['50대 여성'] || 0);
-                        maleData.push(ageGenderData['50대 남성'] || 0);
-                        femaleData.push(ageGenderData['60대 이상 여성'] || 0);
-                        maleData.push(ageGenderData['60대 이상 남성'] || 0);
+                    var bookList = $('#book-list'); // 저서 목록 구현, 책 제목 리스트 채우기
+                    bookList.empty();
 
-                        // 차트가 이미 있으면 데이터 업데이트
-                        if (ageGenderChart) {
-                            ageGenderChart.data.datasets[0].data = femaleData;
-                            ageGenderChart.data.datasets[1].data = maleData;
-                            ageGenderChart.update();
-                        } else {
-                            // 차트 초기화 및 그리기
-                            var ctx = document.getElementById('age-gender-chart').getContext('2d');
-                            ageGenderChart = new Chart(ctx, {
-                                type: 'bar',  // 'horizontalBar' 대신 'bar' 사용
-                                data: {
-                                    labels: ageGroups,
-                                    datasets: [{
-                                        label: '여성',
-                                        data: femaleData,
-                                        backgroundColor: 'pink',
-                                        borderColor: 'pink',
-                                        borderWidth: 1
-                                    },
-                                    {
-                                        label: '남성',
-                                        data: maleData,
-                                        backgroundColor: '#7CACF8',
-                                        borderColor: '#7CACF8',
-                                        borderWidth: 1
-                                    }]
+                    bookTitles = [];
+                    bookDataByStat = {};
+                    if (response.books.length > 0) {
+                        response.books.forEach(function(book) {
+                            bookList.append(
+                                '<li class="book-item" data-book-id="' + book.id + '">' +
+                                '<div class="book-thumbnail"><img id="author-image" src='+book.cover_url+' alt="작가 초상화" /></div>'+
+                                book.title + '</li>'
+                                );
+
+                            var bookLabel = book.title;
+                            var labelMaxLength = 15;
+                            if (book.title.length>labelMaxLength) {
+                                bookLabel = book.title.slice(0, labelMaxLength) + "...";
+                            }
+                            bookTitles.push(bookLabel);
+
+
+                            if (!bookDataByStat["sales_point"]) { bookDataByStat["sales_point"] = []; }
+                            bookDataByStat["sales_point"].push(book.sales_point);
+
+                            if (!bookDataByStat["pricesales"]) { bookDataByStat["pricesales"] = []; }
+                            bookDataByStat["pricesales"].push(book.pricesales);
+
+                            if (!bookDataByStat["pricestandard"]) { bookDataByStat["pricestandard"] = []; }
+                            bookDataByStat["pricestandard"].push(book.pricestandard);
+
+                            if (!bookDataByStat["rating_score"]) { bookDataByStat["rating_score"] = []; }
+                            bookDataByStat["rating_score"].push(book.rating_score);
+
+                            if (!bookDataByStat["rating_count"]) { bookDataByStat["rating_count"] = []; }
+                            bookDataByStat["rating_count"].push(book.rating_count);
+
+                            if (!bookDataByStat["best_rank"]) { bookDataByStat["best_rank"] = []; }
+                            bookDataByStat["best_rank"].push(book.best_rank);
+
+                        });
+                    } else {
+                        bookList.append('<li>저서가 없습니다.</li>');
+                    }
+                    updateChart(bookTitles, bookDataByStat[currentStat]);
+
+                },
+                error: function(request, status, error) {
+                    //alert(error);
+                    alert('책 목록을 불러오는 데 실패했습니다.');
+                }
+            });
+        });
+
+        // 책 클릭 시 해당 책의 설명 페이지를 불러옴
+        $(document).on('click', '.book-item', function() {
+            var bookId = $(this).data('book-id');
+            $.ajax({
+                url: 'book/' + bookId + '/',
+                type: 'GET',
+                success: function(response) {
+                    // 책 목록을 숨기고 책 설명을 표시
+                    $('#book-title').text(response.title);
+                    $('#book-grid').hide();
+                    $('#book-details').html(
+                        '<div class="book-detail-container">' +
+                            '<div class="book-detail-left">' +
+                                '<img id="book-cover" src="' + response.cover_url + '" alt="책 표지" />' +
+                            '</div>' +
+                            '<div class="book-detail-right">' +
+                                '<h3>' + response.title + '</h3>' +
+                                '<p><strong>저자:</strong> ' + response.author + '</p>' +
+                                '<p><strong>출판일:</strong> ' + response.pubdate + '</p>' +
+                                '<p id="book-description"><strong>설명:</strong> ' + response.description + '</p>' +
+                                '<p><strong>판매가:</strong> ' + response.pricesales + '원</p>' +
+                                '<p><strong>정가:</strong> ' + response.pricestandard + '원</p>' +
+                                '<p><strong>평점:</strong> ' + response.rating_score + ' (' + response.rating_count + '명)</p>' +
+                                '<p><strong>베스트 순위:</strong> ' + response.best_rank + '</p>' +
+                                '<p><strong>출판사:</strong> ' + response.publisher + '</p>' +
+                                '<p><strong>판매 지수:</strong> ' + response.sales_point + '</p>' +
+                                '<p><strong>재고 상태:</strong> ' + response.stock_status + '</p>' +
+                                '<a href="' + response.link + '" target="_blank">책 링크</a>' +
+                                '<button id="back-to-list">목록으로</button>' +
+                            '</div>' +
+                        '</div>'
+                    ).show();
+                    // 성별 연령대 데이터 추출 (undefined일 경우 0으로 설정)
+                    var ageGenderData = response.age_gender_ratings || {};
+                    var femaleData = [];
+                    var maleData = [];
+                    var ageGroups = ['10대', '20대', '30대', '40대', '50대', '60대 이상'];
+
+                    // 데이터를 연령대별로 나누기
+                    femaleData.push(ageGenderData['10대 여성'] || 0);
+                    maleData.push(ageGenderData['10대 남성'] || 0);
+                    femaleData.push(ageGenderData['20대 여성'] || 0);
+                    maleData.push(ageGenderData['20대 남성'] || 0);
+                    femaleData.push(ageGenderData['30대 여성'] || 0);
+                    maleData.push(ageGenderData['30대 남성'] || 0);
+                    femaleData.push(ageGenderData['40대 여성'] || 0);
+                    maleData.push(ageGenderData['40대 남성'] || 0);
+                    femaleData.push(ageGenderData['50대 여성'] || 0);
+                    maleData.push(ageGenderData['50대 남성'] || 0);
+                    femaleData.push(ageGenderData['60대 이상 여성'] || 0);
+                    maleData.push(ageGenderData['60대 이상 남성'] || 0);
+
+                    // 차트가 이미 있으면 데이터 업데이트
+                    if (ageGenderChart) {
+                        ageGenderChart.data.datasets[0].data = femaleData;
+                        ageGenderChart.data.datasets[1].data = maleData;
+                        ageGenderChart.update();
+                    } else {
+                        // 차트 초기화 및 그리기
+                        var ctx = document.getElementById('age-gender-chart').getContext('2d');
+                        ageGenderChart = new Chart(ctx, {
+                            type: 'bar',  // 'horizontalBar' 대신 'bar' 사용
+                            data: {
+                                labels: ageGroups,
+                                datasets: [{
+                                    label: '여성',
+                                    data: femaleData,
+                                    backgroundColor: 'pink',
+                                    borderColor: 'pink',
+                                    borderWidth: 1
                                 },
-                                options: {
-                                    indexAxis: 'y',  // 가로 막대형 차트를 위해 추가
-                                    scales: {
-                                        x: {
-                                            beginAtZero: true,
-                                            ticks: {
-                                                callback: function(value) {
-                                                    return value + '%';  // 값에 퍼센트 기호를 붙임
-                                                }
+                                {
+                                    label: '남성',
+                                    data: maleData,
+                                    backgroundColor: '#7CACF8',
+                                    borderColor: '#7CACF8',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                indexAxis: 'y',  // 가로 막대형 차트를 위해 추가
+                                scales: {
+                                    x: {
+                                        beginAtZero: true,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return value + '%';  // 값에 퍼센트 기호를 붙임
                                             }
                                         }
-                                    },
-                                    plugins: {
-                                        tooltip: {
-                                            callbacks: {
-                                                label: function(tooltipItem) {
-                                                    return tooltipItem.raw + '%';  // 툴팁에도 퍼센트 표시
-                                                }
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function(tooltipItem) {
+                                                return tooltipItem.raw + '%';  // 툴팁에도 퍼센트 표시
                                             }
                                         }
                                     }
                                 }
-                            });
-                        }
-
-                        // 차트 컨테이너 표시
-                        $('#age-gender-chart-container').show();
-                    },
-                    error: function(request, status, error) {
-                        alert(error);
-                        //alert('책 설명을 불러오는 데 실패했습니다.');
+                            }
+                        });
                     }
-                });
-            });
 
-            // "목록으로" 버튼 클릭 시 차트와 책 설명을 숨기고 목록을 다시 표시
-            $(document).on('click', '#back-to-list', function() {
-                $('#book-details').hide();           // 책 설명 숨기기
-                $('#age-gender-chart-container').hide();  // 차트 숨기기
-                $('#book-grid').show();              // 책 목록 다시 표시
-            });
-
-            // 뒤로가기 버튼을 눌렀을 때
-            $(document).on('click', '#back-to-list', function() { initGrid() });
-
-            // 통계 검색 버튼을 눌렀을 때
-            $(document).on('click', '#stat-search', function() {
-                // 드롭다운에서 선택된 값을 가져오기
-                currentStat = document.getElementById('stat-dropdown').value;
-                updateChart(bookTitles, bookDataByStat[currentStat]);
+                    // 차트 컨테이너 표시
+                    $('#age-gender-chart-container').show();
+                },
+                error: function(request, status, error) {
+                    alert(error);
+                    //alert('책 설명을 불러오는 데 실패했습니다.');
+                }
             });
         });
 
-    </script>
-</body>
-</html>
+        // "목록으로" 버튼 클릭 시 차트와 책 설명을 숨기고 목록을 다시 표시
+        $(document).on('click', '#back-to-list', function() {
+            $('#book-details').hide();           // 책 설명 숨기기
+            $('#age-gender-chart-container').hide();  // 차트 숨기기
+            $('#book-grid').show();              // 책 목록 다시 표시
+        });
+
+        // 뒤로가기 버튼을 눌렀을 때
+        $(document).on('click', '#back-to-list', function() { initGrid() });
+
+        // 통계 검색 버튼을 눌렀을 때
+        $(document).on('click', '#stat-search', function() {
+            // 드롭다운에서 선택된 값을 가져오기
+            currentStat = document.getElementById('stat-dropdown').value;
+            updateChart(bookTitles, bookDataByStat[currentStat]);
+        });
+    });
+
+</script>
+{% endblock %}

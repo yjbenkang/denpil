@@ -1,0 +1,332 @@
+{% extends 'books/base.html' %}
+
+{% block extra_head %}
+<style>
+    body {
+        font-family: 'Noto Sans KR', sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .grid-container {
+        display: grid;
+        padding-top: 60px;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .chart-box {
+        background-color: #f8f8f8;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    canvas {
+        max-width: 100%;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="grid-container">
+    <!-- 1. 할인 대비 판매지수 -->
+    <div class="chart-box">
+        <h2>할인 대비 판매지수</h2>
+        <canvas id="chart1"></canvas>
+    </div>
+
+    <!-- 2. 출판사 별 판매량 및 책 수 -->
+    <div class="chart-box">
+        <h2>출판사 별 판매량 및 책 개수</h2>
+        <canvas id="chart2"></canvas>
+    </div>
+
+    <!-- 3. 책 별 연령/성별 데이터 -->
+    <div class="chart-box">
+        <h2>책 별 연령/성별 데이터</h2>
+        <select id="book-dropdown">
+            {% for book in books %}
+            <option value="{{book.id}}">{{book.title}}</option>
+            {% endfor %}
+        </select>
+        <canvas id="chart3"></canvas>
+    </div>
+
+    <!-- 4. 작가 별 연령/성별 데이터 -->
+    <div class="chart-box">
+        <h2>작가 별 연령/성별 데이터</h2>
+        <select id="author-dropdown">
+            {% for author in authors %}
+            <option value="{{author.id}}">{{author.name}}</option>
+            {% endfor %}
+        </select>
+        <canvas id="chart4"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: 'book_sales/',
+            method: 'GET',
+            success: function(data) {
+                var scatterData = {};
+                data.forEach(book => {
+                    if (!scatterData["sales_point"]) { scatterData["sales_point"] = []; }
+                    scatterData["sales_point"].push(book.sales_point);
+
+                    if (!scatterData["discount_rate"]) { scatterData["discount_rate"] = []; }
+                    scatterData["discount_rate"].push(book.discount_rate/100);
+                });
+                const ctx = document.getElementById('chart1').getContext('2d');
+                const salesScatterChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: '판매지수 vs 할인율',
+                            data: scatterData.discount_rate.map((rate, index) => ({
+                                x: rate,
+                                y: scatterData.sales_point[index]
+                            })),
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: { display: true, text: '할인율 (%)' },
+                                type: 'linear'
+                            },
+                            y: {
+                                title: { display: true, text: '판매지수' },
+                                type: 'linear'
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.log("데이터 로드 중 오류 발생:", error);
+            }
+        });
+
+        // 출판사
+        $.ajax({
+            url: 'publisher/',
+            method: 'GET',
+            success: function(data) {
+                const publishers = data.map(item => item.publisher);
+                const totalSales = data.map(item => item.total_sales);
+                const bookCount = data.map(item => item.book_count);
+                // 막대 그래프 그리기
+                const ctx = document.getElementById('chart2').getContext('2d');
+                const publisherChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: publishers,  // X축에 출판사 이름 표시
+                        datasets: [
+                            {
+                                label: '총 판매량',
+                                data: totalSales,  // Y축에 총 판매량 표시
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 3
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: { display: true, text: '출판사' }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: '수치' }
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(error) {
+                console.log("데이터 로드 중 오류 발생:", error);
+            }
+        });
+    });
+
+    var bookAgeChart = null
+    $('#book-dropdown').change(function() {
+        var book_id = $(this).val();  // 선택된 항목의 값
+        $.ajax({
+            url: 'book_age/' + book_id + '/',
+            method: 'GET',
+            success: function(data) {
+                const ageData = [
+                        data.age_10,
+                        data.age_20,
+                        data.age_30,
+                        data.age_40,
+                        data.age_50,
+                        data.age_60
+                    ];
+
+                // 성별 데이터
+                const genderData = [
+                    data.male,
+                    data.female
+                ];
+
+                const ctx = document.getElementById('chart3').getContext('2d');
+                if (bookAgeChart) {
+                    bookAgeChart.data.datasets[0].data = ageData;
+                    bookAgeChart.data.datasets[1].data = genderData;
+                    bookAgeChart.update();
+                } else {
+                    bookAgeChart = new Chart(ctx, {
+                    type: 'bar',  // 막대그래프
+                    data: {
+                        labels: ['10대 / 남성', '20대 / 여성', '30대', '40대', '50대', '60대'],  // 연령대 레이블
+                        datasets: [
+                            {
+                                label: '연령대별 사용자 비율 (%)',
+                                data: ageData,  // 연령대 데이터
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: '성별 비율 (%)',
+                                data: genderData,  // 성별 데이터
+                                borderWidth: 1,
+                                // 성별은 다른 Y축에 표시되도록 설정
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '연령대'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '비율 (%)'
+                                }
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: '성별 비율 (%)'
+                                }
+                            }
+                        }
+                    }
+                });
+                }
+            },
+            error: function(error) {
+                console.log("데이터 로드 중 오류 발생:", error);
+            }
+        });
+    });
+
+    var authorAgeChart
+    $('#author-dropdown').change(function() {
+        var author_name = $(this).val();  // 선택된 항목의 값
+        $.ajax({
+            url: 'author_age/' + author_name + '/',
+            method: 'GET',
+            success: function(data) {
+                const ageData = [
+                        data.age_10,
+                        data.age_20,
+                        data.age_30,
+                        data.age_40,
+                        data.age_50,
+                        data.age_60
+                    ];
+
+                // 성별 데이터
+                const genderData = [
+                    data.male,
+                    data.female
+                ];
+
+                const ctx = document.getElementById('chart4').getContext('2d');
+                if (authorAgeChart) {
+                    authorAgeChart.data.datasets[0].data = ageData;
+                    authorAgeChart.data.datasets[1].data = genderData;
+                    authorAgeChart.update();
+                } else {
+                    authorAgeChart = new Chart(ctx, {
+                    type: 'bar',  // 막대그래프
+                    data: {
+                        labels: ['10대 / 남성', '20대 / 여성', '30대', '40대', '50대', '60대'],  // 연령대 레이블
+                        datasets: [
+                            {
+                                label: '연령대별 사용자 비율 (%)',
+                                data: ageData,  // 연령대 데이터
+                                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: '성별 비율 (%)',
+                                data: genderData,  // 성별 데이터
+                                borderWidth: 1,
+                                // 성별은 다른 Y축에 표시되도록 설정
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '연령대'
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '비율 (%)'
+                                }
+                            },
+                            y1: {
+                                beginAtZero: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: '성별 비율 (%)'
+                                }
+                            }
+                        }
+                    }
+                });
+                }
+            },
+            error: function(error) {
+                console.log("데이터 로드 중 오류 발생:", error);
+            }
+        });
+    });
+</script>
+{% endblock %}
